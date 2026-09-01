@@ -457,10 +457,10 @@ const DATA = {"steps":[["2017-01-20",0.04656,0.02557,0.060264],["2018-09-24",0.0
 
   // pick the step whose midpoint is nearest the viewport midpoint - deterministic
   // where an IntersectionObserver band is not, once steps grow taller than the viewport
+  // three rect reads per scroll, run straight off the event: cheap, and it cannot
+  // drop a step the way a coalesced requestAnimationFrame gate can
   const sections=[...document.querySelectorAll(".step")];
-  let queued=false;
   function pick(){
-    queued=false;
     const mid=innerHeight/2; let best=null,bd=Infinity;
     for(const s of sections){
       const r=s.getBoundingClientRect();
@@ -469,9 +469,8 @@ const DATA = {"steps":[["2017-01-20",0.04656,0.02557,0.060264],["2018-09-24",0.0
     }
     if(best) setFocus(best.dataset.k);
   }
-  function onScroll(){ if(!queued){ queued=true; requestAnimationFrame(pick); } }
-  addEventListener("scroll",onScroll,{passive:true});
-  addEventListener("resize",onScroll,{passive:true});
+  addEventListener("scroll",pick,{passive:true});
+  addEventListener("resize",pick,{passive:true});
   pick();
 
   // tables
